@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C Programming Tutor — Sally's Course</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #10141c;
+    --panel: #151a24;
+    --border: #1e2535;
+    --accent: #00e5ff;
+    --accent2: #7c3aed;
+    --accent3: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --green: #10b981;
+    --red: #ef4444;
+    --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .logo {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .logo span { color: var(--accent2); }
+  .topic-badge {
+    margin-left: auto;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(0,229,255,0.08);
+    color: var(--accent);
+    border: 1px solid rgba(0,229,255,0.2);
+    padding: 3px 10px;
+    border-radius: 20px;
+    max-width: 260px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* MAIN LAYOUT */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 10px 0;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .sidebar-section {
+    padding: 6px 14px 2px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .topic-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    line-height: 1.4;
+  }
+  .topic-btn:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .topic-btn.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(0,229,255,0.05);
+  }
+  .topic-btn .num {
+    color: var(--accent2);
+    margin-right: 4px;
+    font-size: 10px;
+  }
+
+  /* CHAT AREA */
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .msg {
+    display: flex;
+    gap: 10px;
+    animation: fadeUp 0.25s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .msg.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .avatar.ai { background: linear-gradient(135deg, var(--accent2), var(--accent)); }
+  .avatar.user-av { background: var(--border); color: var(--accent3); }
+
+  .bubble {
+    max-width: 78%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 15px;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .msg.user .bubble {
+    background: rgba(124,58,237,0.12);
+    border-color: rgba(124,58,237,0.25);
+  }
+  .bubble code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--code-bg);
+    color: var(--accent);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .bubble pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 10px 0;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #a5d6ff;
+  }
+  .bubble pre .kw { color: #ff79c6; }
+  .bubble pre .fn { color: #50fa7b; }
+  .bubble pre .str { color: #f1fa8c; }
+  .bubble pre .cm { color: var(--muted); font-style: italic; }
+  .bubble pre .num { color: var(--accent3); }
+  .bubble h3 {
+    color: var(--accent);
+    font-size: 13px;
+    margin: 10px 0 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .bubble ul { padding-left: 16px; }
+  .bubble li { margin: 3px 0; }
+  .bubble .highlight {
+    background: rgba(0,229,255,0.07);
+    border-left: 3px solid var(--accent);
+    padding: 8px 12px;
+    margin: 8px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 13px;
+  }
+  .bubble .warn {
+    background: rgba(245,158,11,0.08);
+    border-left: 3px solid var(--accent3);
+    padding: 8px 12px;
+    margin: 8px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 13px;
+  }
+  .bubble table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 8px 0;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .bubble th {
+    background: rgba(0,229,255,0.08);
+    color: var(--accent);
+    padding: 5px 10px;
+    text-align: left;
+    border: 1px solid var(--border);
+  }
+  .bubble td {
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 4px 0;
+  }
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: bounce 1.2s infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* QUICK ACTIONS */
+  .quick-actions {
+    display: flex;
+    gap: 6px;
+    padding: 8px 20px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .qa-btn {
+    background: rgba(0,229,255,0.06);
+    border: 1px solid rgba(0,229,255,0.15);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .qa-btn:hover {
+    background: rgba(0,229,255,0.12);
+    border-color: var(--accent);
+  }
+
+  /* INPUT */
+  .input-area {
+    padding: 12px 20px 14px;
+    background: var(--surface);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    border-top: 1px solid var(--border);
+  }
+  .input-area textarea {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    padding: 10px 14px;
+    resize: none;
+    outline: none;
+    max-height: 120px;
+    min-height: 42px;
+    transition: border-color 0.2s;
+    line-height: 1.5;
+  }
+  .input-area textarea:focus { border-color: rgba(0,229,255,0.4); }
+  .input-area textarea::placeholder { color: var(--muted); }
+  .send-btn {
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border: none;
+    border-radius: 10px;
+    color: white;
+    width: 42px;
+    height: 42px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+  }
+  .send-btn:hover { opacity: 0.85; }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .loading-msg { color: var(--muted); font-size: 12px; text-align: center; padding: 8px; }
+
+  @media (max-width: 600px) {
+    .sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">C<span>/</span>TUTOR</div>
+  <div style="font-size:12px;color:var(--muted);">Sally Hamdan · 2026</div>
+  <div class="topic-badge" id="topicBadge">Ready to learn</div>
+</header>
+
+<div class="main">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar"></div>
+
+  <!-- CHAT -->
+  <div class="chat-area">
+    <div class="messages" id="messages"></div>
+
+    <div class="quick-actions" id="quickActions">
+      <button class="qa-btn" onclick="quickAsk('Give me an exercise on this topic')">📝 Exercise</button>
+      <button class="qa-btn" onclick="quickAsk('Show me a real-world example')">💡 Example</button>
+      <button class="qa-btn" onclick="quickAsk('Quiz me on what I just learned')">🧠 Quiz me</button>
+      <button class="qa-btn" onclick="quickAsk('Explain more simply')">🔄 Simplify</button>
+      <button class="qa-btn" onclick="quickAsk('What are common mistakes here?')">⚠️ Common mistakes</button>
+    </div>
+
+    <div class="input-area">
+      <textarea id="userInput" placeholder="Ask anything about C... or type 'next' to continue" rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOPICS = [
+  { part: "Part 1 — Intro to C", topics: [
+    { id: 1, label: "What is Programming?", key: "intro_programming" },
+    { id: 2, label: "History of C", key: "history_c" },
+    { id: 3, label: "Features of C", key: "features_c" },
+    { id: 4, label: "Structure of a C Program", key: "structure_c" },
+    { id: 5, label: "Compilation Process", key: "compilation" },
+    { id: 6, label: "Hello World", key: "hello_world" },
+  ]},
+  { part: "Part 2 — Variables", topics: [
+    { id: 7, label: "Variables & Assignment", key: "variables" },
+    { id: 8, label: "Data Types", key: "data_types" },
+    { id: 9, label: "const Keyword", key: "const" },
+    { id: 10, label: "Boolean Type", key: "boolean" },
+  ]},
+  { part: "Part 3 — Input/Output", topics: [
+    { id: 11, label: "printf()", key: "printf" },
+    { id: 12, label: "scanf()", key: "scanf" },
+    { id: 13, label: "getchar()", key: "getchar" },
+  ]},
+  { part: "Part 4 — Operators", topics: [
+    { id: 14, label: "Math Operations", key: "math_ops" },
+    { id: 15, label: "Operator Precedence", key: "precedence" },
+    { id: 16, label: "Increment/Decrement", key: "increment" },
+  ]},
+  { part: "Part 5 — Control Flow", topics: [
+    { id: 17, label: "if / else", key: "if_else" },
+    { id: 18, label: "switch Statement", key: "switch" },
+  ]},
+  { part: "Part 6 — Loops", topics: [
+    { id: 19, label: "while / do-while / for", key: "loops" },
+    { id: 20, label: "break & continue", key: "break_continue" },
+    { id: 21, label: "Nested Loops", key: "nested_loops" },
+  ]},
+  { part: "Part 7 — Arrays & Strings", topics: [
+    { id: 22, label: "Arrays", key: "arrays" },
+    { id: 23, label: "Array Init & Copying", key: "array_init" },
+    { id: 24, label: "Strings in C", key: "strings" },
+    { id: 25, label: "2D Arrays", key: "2d_arrays" },
+  ]},
+  { part: "Part 8 — Math Library", topics: [
+    { id: 26, label: "math.h Functions", key: "math_h" },
+  ]},
+  { part: "Part 9 — Functions", topics: [
+    { id: 27, label: "Functions in C", key: "functions" },
+    { id: 28, label: "Recursion", key: "recursion" },
+  ]},
+  { part: "Part 10 — Pointers", topics: [
+    { id: 29, label: "Intro to Pointers", key: "pointers_intro" },
+    { id: 30, label: "& and * Operators", key: "pointer_ops" },
+    { id: 31, label: "Pointers & Arrays", key: "pointers_arrays" },
+  ]},
+  { part: "Part 11 — main()", topics: [
+    { id: 32, label: "The main Function", key: "main_fn" },
+  ]},
+];
+
+const COURSE_CONTEXT = `You are an expert C programming tutor for the course "Algorithmic and Programming" by Sally Hamdan (2026).
+
+The course covers (in order):
+Part 1: Intro to C — what is programming, history, features, structure of a C program, compilation, hello world
+Part 2: Variables & Data Types — int, float, double, char, const, boolean (_Bool, stdbool.h)
+Part 3: Input/Output — printf (format specifiers, escape sequences), scanf (&operator), getchar()
+Part 4: Operators — arithmetic (+,-,*,/,%), operator precedence, post/pre increment/decrement
+Part 5: Control Structures — if/else/else-if, switch/case/default/fall-through
+Part 6: Loops — while, do-while, for, break, continue, nested loops
+Part 7: Arrays & Strings — arrays (declare, init, copy, I/O), strings (char arrays, null terminator, string functions), 2D arrays
+Part 8: Math Library — math.h: sqrt, pow, sin, cos, abs, fabs
+Part 9: Functions — prototype, definition, call, pass-by-value, recursion (factorial, fibonacci)
+Part 10: Pointers — memory addresses, declaration, NULL, & (address-of), * (dereference), pointer arithmetic, arrays and pointers
+Part 11: main() — int main(void) vs int main(int argc, char *argv[])
+
+TEACHING STYLE:
+- Start with a relatable analogy or real-world example
+- Show clear, minimal code examples (always include #include headers)
+- Explain each line of code
+- Highlight common mistakes in a ⚠️ warning box
+- End with 1-2 quick exercises the student can try mentally
+- Use simple language — student is a beginner
+- Format: use **bold** for key terms, use \`code\` for inline code, use code blocks for programs
+- When showing code, always show expected output
+- Be encouraging and friendly
+- Keep responses focused and not too long`;
+
+let conversationHistory = [];
+let currentTopicKey = null;
+let isLoading = false;
+
+// BUILD SIDEBAR
+function buildSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  TOPICS.forEach(group => {
+    const section = document.createElement('div');
+    section.className = 'sidebar-section';
+    section.textContent = group.part;
+    sidebar.appendChild(section);
+    group.topics.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'topic-btn';
+      btn.id = `topic-${t.key}`;
+      btn.innerHTML = `<span class="num">${t.id}.</span>${t.label}`;
+      btn.onclick = () => loadTopic(t);
+      sidebar.appendChild(btn);
+    });
+  });
+}
+
+function setActiveTopic(key) {
+  document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById(`topic-${key}`);
+  if (el) { el.classList.add('active'); el.scrollIntoView({ block: 'nearest' }); }
+}
+
+async function loadTopic(t) {
+  if (isLoading) return;
+  currentTopicKey = t.key;
+  setActiveTopic(t.key);
+  document.getElementById('topicBadge').textContent = `${t.id}. ${t.label}`;
+  conversationHistory = [];
+  clearMessages();
+  const prompt = `Teach me about topic ${t.id}: "${t.label}" from scratch. Start from zero — assume I know nothing about this yet. Give me a complete lesson.`;
+  addMessage('user', prompt);
+  await getAIResponse(prompt);
+}
+
+function clearMessages() {
+  document.getElementById('messages').innerHTML = '';
+}
+
+function addMessage(role, content, isHTML = false) {
+  const messages = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role === 'user' ? 'user' : 'ai'}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = `avatar ${role === 'user' ? 'user-av' : 'ai'}`;
+  avatar.textContent = role === 'user' ? '👤' : '🤖';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+
+  if (isHTML) {
+    bubble.innerHTML = content;
+  } else {
+    bubble.innerHTML = formatMessage(content);
+  }
+
+  div.appendChild(avatar);
+  div.appendChild(bubble);
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+  return bubble;
+}
+
+function formatMessage(text) {
+  // Code blocks
+  text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    const escaped = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const highlighted = escaped
+      .replace(/\b(int|float|double|char|void|return|if|else|for|while|do|switch|case|break|continue|const|bool|true|false|NULL|include|define|default|struct|typedef)\b/g, '<span class="kw">$1</span>')
+      .replace(/\b(printf|scanf|getchar|sqrt|pow|sin|cos|abs|fabs|strlen|strcpy|strcmp|main|factorial|fib|add|max|printArray)\b/g, '<span class="fn">$1</span>')
+      .replace(/"([^"]*)"/g, '<span class="str">"$1"</span>')
+      .replace(/'(.)'/g, '<span class="str">\'$1\'</span>')
+      .replace(/\/\/.*/g, '<span class="cm">$&</span>')
+      .replace(/\b(\d+\.?\d*)\b/g, '<span class="num">$1</span>');
+    return `<pre>${highlighted}</pre>`;
+  });
+  // Inline code
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Bold
+  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // Highlights
+  text = text.replace(/⚠️([^\n]+)/g, '<div class="warn">⚠️$1</div>');
+  text = text.replace(/💡([^\n]+)/g, '<div class="highlight">💡$1</div>');
+  // Headers
+  text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  // Line breaks
+  text = text.replace(/\n/g, '<br>');
+  // Lists
+  text = text.replace(/<br>- /g, '<br>• ');
+  return text;
+}
+
+function addTypingIndicator() {
+  const messages = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ai';
+  div.id = 'typing';
+  div.innerHTML = `
+    <div class="avatar ai">🤖</div>
+    <div class="bubble">
+      <div class="typing-indicator">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>`;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const el = document.getElementById('typing');
+  if (el) el.remove();
+}
+
+async function getAIResponse(userMessage) {
+  if (isLoading) return;
+  isLoading = true;
+  document.getElementById('sendBtn').disabled = true;
+  addTypingIndicator();
+
+  conversationHistory.push({ role: 'user', content: userMessage });
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: COURSE_CONTEXT,
+        messages: conversationHistory
+      })
+    });
+
+    const data = await response.json();
+    const reply = data.content?.map(b => b.text || '').join('') || 'Sorry, I could not get a response.';
+    conversationHistory.push({ role: 'assistant', content: reply });
+
+    removeTypingIndicator();
+    addMessage('assistant', reply);
+  } catch (err) {
+    removeTypingIndicator();
+    addMessage('assistant', '⚠️ Connection error. Please try again.', true);
+  }
+
+  isLoading = false;
+  document.getElementById('sendBtn').disabled = false;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text || isLoading) return;
+  input.value = '';
+  input.style.height = 'auto';
+  addMessage('user', text);
+  await getAIResponse(text);
+}
+
+function quickAsk(text) {
+  const input = document.getElementById('userInput');
+  input.value = text;
+  sendMessage();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// WELCOME MESSAGE
+function showWelcome() {
+  const html = `
+    <div style="text-align:center;padding:30px 10px;">
+      <div style="font-size:40px;margin-bottom:10px;">⚡</div>
+      <div style="font-size:20px;font-weight:800;color:var(--accent);margin-bottom:6px;">Welcome to C Programming</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:20px;">Sally Hamdan · Algorithmic and Programming · 2026</div>
+      <div style="color:var(--text);font-size:14px;line-height:1.7;max-width:380px;margin:0 auto;">
+        Pick any topic from the sidebar to start learning, or ask me anything about C programming below.
+        <br><br>
+        <span style="color:var(--accent2);">I'll teach you from zero — no prior experience needed.</span>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+        <button class="qa-btn" onclick="loadTopic({id:1,label:'What is Programming?',key:'intro_programming'})">▶ Start from the beginning</button>
+        <button class="qa-btn" onclick="loadTopic({id:29,label:'Intro to Pointers',key:'pointers_intro'})">⚡ Jump to Pointers</button>
+        <button class="qa-btn" onclick="loadTopic({id:27,label:'Functions in C',key:'functions'})">🔧 Learn Functions</button>
+      </div>
+    </div>`;
+  addMessage('assistant', html, true);
+}
+
+buildSidebar();
+showWelcome();
+</script>
+</body>
+</html>
